@@ -35,9 +35,12 @@ public class TemperatureMonitoringSetup implements ServiceSetup {
 
   @Override
   public void onStartup() {
+    //run the temperature stream that will simulate IoT device temperature readings
     this.runningStream = temperatureStream
       .createStream()
       .runWith(Sink.ignore(), materializer);
+
+    //schedule the agent call to summarize the temperature readings
     materializer.scheduleAtFixedRate(
       FiniteDuration.apply(10, SECONDS),
       FiniteDuration.apply(10, SECONDS),

@@ -18,6 +18,9 @@ import java.util.Random;
 /**
  * Simulates a stream of temperature measurements from IoT devices located in different rooms.
  * It feeds the system with both historical data (last 10 minutes) and real-time measurements.
+ *
+ * In real-world applications, this fake steam would be replaced with a {@link akka.javasdk.consumer.Consumer}
+ * that reads from a real-time data source.
  */
 public class IoTDeviceTemperatureStream {
 
