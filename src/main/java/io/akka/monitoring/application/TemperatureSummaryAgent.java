@@ -13,7 +13,14 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @ComponentId("temperature-agent")
-@AgentDescription(name = "Temperature summary agent", description = "Agent that summarizes temperature data from sensors. It provides an overview of the average, minimum, and maximum temperatures recorded by sensors in a specific location.")
+@AgentDescription(
+  name = "Temperature summary agent",
+  description =
+    """
+    Agent that summarizes temperature data from sensors. It provides an overview 
+    of the average, minimum, and maximum temperatures recorded by sensors in a
+    specific location.
+    """)
 public class TemperatureSummaryAgent extends Agent {
 
   private final ComponentClient componentClient;
@@ -40,7 +47,7 @@ public class TemperatureSummaryAgent extends Agent {
     Use the room names in your report to improve readability.
     Do not include any additional information of the overall summary.
     
-    """;
+    """.stripIndent();
 
   private final ModelProvider modelProvider = ModelProvider.openAi()
     .withApiKey(System.getenv("OPENAI_API_KEY"))
@@ -67,7 +74,6 @@ public class TemperatureSummaryAgent extends Agent {
         .model(modelProvider)
         .systemMessage(SYSTEM_MESSAGE)
         .userMessage(userMessage)
-        .responseAs(String.class)
         .thenReply();
     } catch (JsonProcessingException e) {
       return effects().error("Failed to serialize temperature entries: " + e.getMessage());

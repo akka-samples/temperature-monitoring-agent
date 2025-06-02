@@ -12,23 +12,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 
 @Setup
-public class TemperatureMonitoringSetup implements ServiceSetup {
+public class Bootstrap implements ServiceSetup {
 
-  private static final Logger log = LoggerFactory.getLogger(TemperatureMonitoringSetup.class);
+  private static final Logger log = LoggerFactory.getLogger(Bootstrap.class);
   private final Materializer materializer;
   private final ComponentClient componentClient;
   private final IoTDeviceTemperatureStream temperatureStream;
   private CompletionStage<Done> runningStream;
   public static final String AGENT_SESSION_ID = "temperature-monitoring-session";
 
-  public TemperatureMonitoringSetup(Materializer materializer, ComponentClient componentClient) {
+  public Bootstrap(Materializer materializer, ComponentClient componentClient) {
     this.materializer = materializer;
     this.componentClient = componentClient;
     this.temperatureStream = new IoTDeviceTemperatureStream(componentClient);

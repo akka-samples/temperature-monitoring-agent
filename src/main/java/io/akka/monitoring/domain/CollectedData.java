@@ -19,8 +19,6 @@ public record CollectedData(double totalTemperature, int totalCount, double minT
   }
 
   private double averageRounded() {
-    // Round to 2 decimal places
-    BigDecimal bd = new BigDecimal(totalTemperature / totalCount).setScale(2, RoundingMode.HALF_UP);
-    return bd.doubleValue();
+    return Math.round(totalTemperature / totalCount * 100.0) / 100.0;
   }
 }

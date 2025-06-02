@@ -8,7 +8,6 @@ import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
-import io.akka.monitoring.TemperatureMonitoringSetup;
 import io.akka.monitoring.application.AggregatedTemperature;
 import io.akka.monitoring.application.AggregatedTemperatureView;
 import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurementsQuery;
@@ -16,6 +15,8 @@ import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurements
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+
+import static io.akka.monitoring.Bootstrap.AGENT_SESSION_ID;
 
 @Acl(allow = @Acl.Matcher(principal = Acl.Principal.INTERNET))
 @HttpEndpoint("/temperatures")
@@ -59,7 +60,7 @@ public class TemperatureEndpoint {
   @Get("/summary")
   public String summary() {
 
-    var sessionMessages = componentClient.forEventSourcedEntity(TemperatureMonitoringSetup.AGENT_SESSION_ID)
+    var sessionMessages = componentClient.forEventSourcedEntity(AGENT_SESSION_ID)
       .method(ConversationMemory::getHistory)
       .invoke()
       .messages();

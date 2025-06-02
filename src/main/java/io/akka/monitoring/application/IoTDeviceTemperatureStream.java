@@ -21,7 +21,7 @@ import static java.time.Duration.ofSeconds;
  * Simulates a stream of temperature measurements from IoT devices located in different rooms.
  * It feeds the system with both historical data (last 10 minutes) and real-time measurements.
  * <p>
- * In real-world applications, this fake steam would be replaced with a {@link akka.javasdk.consumer.Consumer}
+ * In real-world applications, this fake stream would be replaced with a {@link akka.javasdk.consumer.Consumer}
  * that reads from a real-time data source.
  */
 public class IoTDeviceTemperatureStream {
@@ -54,7 +54,7 @@ public class IoTDeviceTemperatureStream {
 
   public Source<Done, NotUsed> createStream() {
 
-    return historicalDataSource().concat(Source.tick(
+    return historicalDataSource().concatLazy(Source.tick(
         ofSeconds(1),
         ofSeconds(1),
         "tick"
@@ -112,8 +112,6 @@ public class IoTDeviceTemperatureStream {
     }
     double rawValue = min + (max - min) * random.nextDouble();
 
-    // Round to 2 decimal places
-    BigDecimal bd = new BigDecimal(rawValue).setScale(2, RoundingMode.HALF_UP);
-    return bd.doubleValue();
+    return Math.round(rawValue * 100.0) / 100.0;
   }
 }
