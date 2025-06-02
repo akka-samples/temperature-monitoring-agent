@@ -55,4 +55,9 @@ public class AggregatedTemperatureView extends View {
   public QueryEffect<AggregatedTemperatureEntries> queryLatest() {
     return queryResult();
   }
+
+  @Query(value = "select * from temperatures", streamUpdates = true)
+  public QueryStreamEffect<AggregatedTemperatureEntry> continuousTemperature() {
+    return queryStreamResult();
+  }
 }

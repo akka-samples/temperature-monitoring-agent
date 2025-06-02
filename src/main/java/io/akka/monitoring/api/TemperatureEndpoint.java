@@ -1,9 +1,14 @@
 package io.akka.monitoring.api;
 
+import akka.http.javadsl.model.HttpResponse;
+import akka.javasdk.agent.ConversationMemory;
+import akka.javasdk.agent.ConversationMessage;
 import akka.javasdk.annotations.Acl;
 import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
+import akka.javasdk.http.HttpResponses;
+import io.akka.monitoring.TemperatureMonitoringSetup;
 import io.akka.monitoring.application.AggregatedTemperature;
 import io.akka.monitoring.application.AggregatedTemperatureView;
 import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurementsQuery;
@@ -39,5 +44,36 @@ public class TemperatureEndpoint {
       .method(AggregatedTemperatureView::query)
       .invoke(new LastMeasurementsQuery(nowMinusMinute))
       .entries();
+  }
+
+  @Get("/real-time")
+  public HttpResponse realTimeUpdates() {
+
+    var temperatureUpdates = componentClient.forView()
+      .stream(AggregatedTemperatureView::continuousTemperature)
+      .source();
+
+    return HttpResponses.serverSentEvents(temperatureUpdates);
+  }
+
+  @Get("/summary")
+  public String summary() {
+
+    var sessionMessages = componentClient.forEventSourcedEntity(TemperatureMonitoringSetup.AGENT_SESSION_ID)
+      .method(ConversationMemory::getHistory)
+      .invoke()
+      .messages();
+
+    var aiTextResponses = sessionMessages.stream()
+      .filter(message -> message instanceof ConversationMessage.AiMessage)
+      .map(ConversationMessage.AiMessage.class::cast)
+      .map(ConversationMessage.AiMessage::text)
+      .toList();
+
+    if (aiTextResponses.isEmpty()) {
+      return "No summary available yet. Please wait for the temperature agent to generate a summary.";
+    } else {
+      return aiTextResponses.getLast();
+    }
   }
 }

@@ -15,10 +15,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Random;
 
+import static java.time.Duration.ofSeconds;
+
 /**
  * Simulates a stream of temperature measurements from IoT devices located in different rooms.
  * It feeds the system with both historical data (last 10 minutes) and real-time measurements.
- *
+ * <p>
  * In real-world applications, this fake steam would be replaced with a {@link akka.javasdk.consumer.Consumer}
  * that reads from a real-time data source.
  */
@@ -53,8 +55,8 @@ public class IoTDeviceTemperatureStream {
   public Source<Done, NotUsed> createStream() {
 
     return historicalDataSource().concat(Source.tick(
-        java.time.Duration.ofSeconds(1),
-        java.time.Duration.ofSeconds(1),
+        ofSeconds(1),
+        ofSeconds(1),
         "tick"
       )
       .mapMaterializedValue(__ -> NotUsed.getInstance())
@@ -73,7 +75,7 @@ public class IoTDeviceTemperatureStream {
 
   private Source<Done, NotUsed> historicalDataSource() {
     var now = Instant.now();
-    return Source.range(10, 1, -1)
+    return Source.range(3, 1, -1)
       .flatMapConcat(i -> Source.from(LOCATIONS)
         .map(location ->
           randomTemperatureMeasurement(location).withTimestamp(now.truncatedTo(ChronoUnit.MINUTES).minus(i, ChronoUnit.MINUTES))
@@ -83,8 +85,20 @@ public class IoTDeviceTemperatureStream {
 
   public RawTemperatureMeasurement randomTemperatureMeasurement(Location location) {
     return new RawTemperatureMeasurement(location,
-      randomDoubleInRange(20.0, 30.0),
+      randomTemperature(location),
       Instant.now());
+  }
+
+  private double randomTemperature(Location location) {
+    if (location.sensorId().equals("temp-101")) {
+      // Boiler Room A is expected to be hotter
+      return randomDoubleInRange(30.0, 40.0);
+    } else if (location.sensorId().equals("temp-103")) {
+      // Warehouse C is expected to be cooler
+      return randomDoubleInRange(10.0, 20.0);
+    } else {
+      return randomDoubleInRange(20.0, 30.0);
+    }
   }
 
   private Location randomLocation() {

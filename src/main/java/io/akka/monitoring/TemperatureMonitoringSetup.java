@@ -26,6 +26,7 @@ public class TemperatureMonitoringSetup implements ServiceSetup {
   private final ComponentClient componentClient;
   private final IoTDeviceTemperatureStream temperatureStream;
   private CompletionStage<Done> runningStream;
+  public static final String AGENT_SESSION_ID = "temperature-monitoring-session";
 
   public TemperatureMonitoringSetup(Materializer materializer, ComponentClient componentClient) {
     this.materializer = materializer;
@@ -43,14 +44,14 @@ public class TemperatureMonitoringSetup implements ServiceSetup {
     //schedule the agent call to summarize the temperature readings
     materializer.scheduleAtFixedRate(
       FiniteDuration.apply(10, SECONDS),
-      FiniteDuration.apply(10, SECONDS),
+      FiniteDuration.apply(30, SECONDS),
       this::callAgent);
   }
 
   private void callAgent() {
     try {
       var result = componentClient.forAgent()
-        .inSession(UUID.randomUUID().toString())
+        .inSession(AGENT_SESSION_ID)
         .method(TemperatureSummaryAgent::summarize)
         .invoke();
       log.info("Temperature summary from agent: \n{}", result);
