@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 
-import static io.akka.monitoring.Bootstrap.AGENT_SESSION_ID;
+import static io.akka.monitoring.application.TemperatureSummaryAgent.AGENT_SESSION_ID;
 
 @ComponentId("temperature-summary-action")
 public class TemperatureSummaryAction extends TimedAction {

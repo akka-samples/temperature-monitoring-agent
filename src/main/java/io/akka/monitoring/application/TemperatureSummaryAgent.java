@@ -6,7 +6,6 @@ import akka.javasdk.agent.ModelProvider;
 import akka.javasdk.annotations.AgentDescription;
 import akka.javasdk.annotations.ComponentId;
 import akka.javasdk.client.ComponentClient;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurementsQuery;
 
 import java.time.Instant;
@@ -19,10 +18,10 @@ import static akka.javasdk.agent.MemoryProvider.limitedWindow;
   name = "Temperature summary agent",
   description =
     """
-    Agent that summarizes temperature data from sensors. It provides an overview 
-    of the average, minimum, and maximum temperatures recorded by sensors in a
-    specific location.
-    """)
+      Agent that summarizes temperature data from sensors. It provides an overview 
+      of the average, minimum, and maximum temperatures recorded by sensors in a
+      specific location.
+      """)
 public class TemperatureSummaryAgent extends Agent {
 
   private final ComponentClient componentClient;
@@ -51,6 +50,8 @@ public class TemperatureSummaryAgent extends Agent {
     
     """.stripIndent();
 
+  public static final String AGENT_SESSION_ID = "temperature-monitoring-session";
+
   private final ModelProvider modelProvider = ModelProvider.openAi()
     .withApiKey(System.getenv("OPENAI_API_KEY"))
     .withModelName("gpt-4o");
@@ -70,17 +71,12 @@ public class TemperatureSummaryAgent extends Agent {
       return effects().reply("There are no temperature data available");
     }
 
-    try {
-      var userMessage = JsonSupport.getObjectMapper().writeValueAsString(lastMeasurements.entries());
-      return effects()
-        .memory(limitedWindow().writeOnly())
-        .model(modelProvider)
-        .systemMessage(SYSTEM_MESSAGE)
-        .userMessage(userMessage)
-        .thenReply();
-    } catch (JsonProcessingException e) {
-      return effects().error("Failed to serialize temperature entries: " + e.getMessage());
-    }
-
+    var userMessage = JsonSupport.encodeToString(lastMeasurements.entries());
+    return effects()
+      .memory(limitedWindow().writeOnly())
+      .model(modelProvider)
+      .systemMessage(SYSTEM_MESSAGE)
+      .userMessage(userMessage)
+      .thenReply();
   }
 }

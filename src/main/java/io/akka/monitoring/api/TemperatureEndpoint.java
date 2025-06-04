@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-import static io.akka.monitoring.Bootstrap.AGENT_SESSION_ID;
+import static io.akka.monitoring.application.TemperatureSummaryAgent.AGENT_SESSION_ID;
 import static java.lang.System.currentTimeMillis;
 
 @Acl(allow = @Acl.Matcher(principal = Acl.Principal.INTERNET))

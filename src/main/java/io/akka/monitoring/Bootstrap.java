@@ -24,7 +24,6 @@ public class Bootstrap implements ServiceSetup {
   private final IoTDeviceTemperatureStream temperatureStream;
   private final TimerScheduler timerScheduler;
   private CompletionStage<Done> runningStream;
-  public static final String AGENT_SESSION_ID = "temperature-monitoring-session";
 
   public Bootstrap(Materializer materializer, ComponentClient componentClient, TimerScheduler timerScheduler) {
     this.materializer = materializer;
