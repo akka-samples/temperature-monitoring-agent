@@ -8,9 +8,12 @@ import akka.javasdk.timer.TimerScheduler;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import io.akka.monitoring.application.IoTDeviceTemperatureStream;
-import io.akka.monitoring.application.TemperatureSummaryWorkflow;
+import io.akka.monitoring.application.TemperatureSummaryAction;
 
+import java.time.Duration;
 import java.util.concurrent.CompletionStage;
+
+import static io.akka.monitoring.application.TemperatureSummaryAction.CALL_AGENT_TIMER_NAME;
 
 
 @Setup
@@ -40,8 +43,10 @@ public class Bootstrap implements ServiceSetup {
       .runWith(Sink.ignore(), materializer);
 
     //schedule the agent call to summarize the temperature readings
-    componentClient.forWorkflow("summarize-temperature")
-      .method(TemperatureSummaryWorkflow::start)
-      .invoke();
+    timerScheduler.createSingleTimer(CALL_AGENT_TIMER_NAME,
+      Duration.ofSeconds(10),
+      componentClient.forTimedAction()
+        .method(TemperatureSummaryAction::callAgent)
+        .deferred());
   }
 }

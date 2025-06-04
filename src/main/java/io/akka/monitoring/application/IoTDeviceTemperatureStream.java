@@ -112,6 +112,6 @@ public class IoTDeviceTemperatureStream {
     }
     double rawValue = min + (max - min) * random.nextDouble();
 
-    return Math.round(rawValue * 100.0) / 100.0;
+    return Math.round(rawValue * 10.0) / 10.0;
   }
 }

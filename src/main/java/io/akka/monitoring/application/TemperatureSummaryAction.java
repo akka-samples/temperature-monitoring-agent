@@ -15,6 +15,7 @@ import static io.akka.monitoring.Bootstrap.AGENT_SESSION_ID;
 public class TemperatureSummaryAction extends TimedAction {
 
   private static final Logger log = LoggerFactory.getLogger(TemperatureSummaryAction.class);
+  public static final String CALL_AGENT_TIMER_NAME = "call-agent";
   private final ComponentClient componentClient;
   private final TimerScheduler scheduler;
 
@@ -35,7 +36,7 @@ public class TemperatureSummaryAction extends TimedAction {
         .method(TemperatureSummaryAction::callAgent)
         .deferred();
 
-      scheduler.createSingleTimer("call-agent",
+      scheduler.createSingleTimer(CALL_AGENT_TIMER_NAME,
         Duration.ofSeconds(30),
         callSummaryAgent);
       return effects().done();

@@ -1,8 +1,5 @@
 package io.akka.monitoring.domain;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 public record CollectedData(double totalTemperature, int totalCount, double minTemperature, double maxTemperature) {
   public CollectedData update(double temperature) {
     double newTotalTemperature = totalTemperature + temperature;
@@ -19,6 +16,6 @@ public record CollectedData(double totalTemperature, int totalCount, double minT
   }
 
   private double averageRounded() {
-    return Math.round(totalTemperature / totalCount * 100.0) / 100.0;
+    return Math.round(totalTemperature / totalCount * 10.0) / 10.0;
   }
 }
