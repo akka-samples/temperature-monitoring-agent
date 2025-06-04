@@ -1,8 +1,9 @@
 package io.akka.monitoring.api;
 
 import akka.http.javadsl.model.HttpResponse;
-import akka.javasdk.agent.ConversationMemory;
-import akka.javasdk.agent.ConversationMessage;
+import akka.javasdk.agent.SessionMemoryEntity;
+import akka.javasdk.agent.SessionMemoryEntity.GetHistoryCmd;
+import akka.javasdk.agent.SessionMessage;
 import akka.javasdk.annotations.Acl;
 import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
@@ -15,6 +16,7 @@ import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurements
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import static io.akka.monitoring.Bootstrap.AGENT_SESSION_ID;
 
@@ -61,14 +63,14 @@ public class TemperatureEndpoint {
   public String summary() {
 
     var sessionMessages = componentClient.forEventSourcedEntity(AGENT_SESSION_ID)
-      .method(ConversationMemory::getHistory)
-      .invoke()
+      .method(SessionMemoryEntity::getHistory)
+      .invoke(new GetHistoryCmd(Optional.empty())) //this should be last 2
       .messages();
 
     var aiTextResponses = sessionMessages.stream()
-      .filter(message -> message instanceof ConversationMessage.AiMessage)
-      .map(ConversationMessage.AiMessage.class::cast)
-      .map(ConversationMessage.AiMessage::text)
+      .filter(message -> message instanceof SessionMessage.AiMessage)
+      .map(SessionMessage.AiMessage.class::cast)
+      .map(SessionMessage.AiMessage::text)
       .toList();
 
     if (aiTextResponses.isEmpty()) {

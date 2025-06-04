@@ -12,6 +12,8 @@ import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurements
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static akka.javasdk.agent.MemoryProvider.limitedWindow;
+
 @ComponentId("temperature-agent")
 @AgentDescription(
   name = "Temperature summary agent",
@@ -71,6 +73,7 @@ public class TemperatureSummaryAgent extends Agent {
     try {
       var userMessage = JsonSupport.getObjectMapper().writeValueAsString(lastMeasurements.entries());
       return effects()
+        .memory(limitedWindow().writeOnly())
         .model(modelProvider)
         .systemMessage(SYSTEM_MESSAGE)
         .userMessage(userMessage)
