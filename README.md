@@ -3,6 +3,13 @@
 A temperature monitoring system that collects, aggregates, and analyzes temperature data from IoT sensors. The 
 system uses AI to generate insights about temperature trends and anomalies across different locations.
 
+It is built using Akka components like:
+ - HTTP Endpoint,
+ - Key Value Entity,
+ - Timed Action,
+ - View,
+ - and the most recent one - an Agent component that streamlines the interaction with LLM.
+
 ## Features
 
 - Simulates IoT temperature sensors in three locations (Boiler Room A, Server Room B, Warehouse C)
