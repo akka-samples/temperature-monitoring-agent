@@ -68,7 +68,7 @@ public class TemperatureEndpoint {
 
     var sessionMessages = componentClient.forEventSourcedEntity(AGENT_SESSION_ID)
       .method(SessionMemoryEntity::getHistory)
-      .invoke(new GetHistoryCmd(Optional.empty())) //this should be last 2
+      .invoke(new GetHistoryCmd(Optional.of(2)))
       .messages();
 
     var aiTextResponses = sessionMessages.stream()
