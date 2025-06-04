@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.akka.monitoring.Bootstrap.AGENT_SESSION_ID;
+import static java.lang.System.currentTimeMillis;
 
 @Acl(allow = @Acl.Matcher(principal = Acl.Principal.INTERNET))
 @HttpEndpoint("/temperatures")
@@ -28,6 +29,9 @@ public class TemperatureEndpoint {
 
   public TemperatureEndpoint(ComponentClient componentClient) {
     this.componentClient = componentClient;
+  }
+
+  record Summary(long timestamp, String text) {
   }
 
   @Get("/current/{sensorId}")
@@ -60,7 +64,7 @@ public class TemperatureEndpoint {
   }
 
   @Get("/summary")
-  public String summary() {
+  public Summary summary() {
 
     var sessionMessages = componentClient.forEventSourcedEntity(AGENT_SESSION_ID)
       .method(SessionMemoryEntity::getHistory)
@@ -70,11 +74,11 @@ public class TemperatureEndpoint {
     var aiTextResponses = sessionMessages.stream()
       .filter(message -> message instanceof SessionMessage.AiMessage)
       .map(SessionMessage.AiMessage.class::cast)
-      .map(SessionMessage.AiMessage::text)
+      .map(aiMessage -> new Summary(aiMessage.timestamp(), aiMessage.text()))
       .toList();
 
     if (aiTextResponses.isEmpty()) {
-      return "No summary available yet. Please wait for the temperature agent to generate a summary.";
+      return new Summary(currentTimeMillis(), "No summary available yet. Please wait for the temperature agent to generate a summary.");
     } else {
       return aiTextResponses.getLast();
     }

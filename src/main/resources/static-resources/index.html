@@ -267,6 +267,7 @@
         <div class="summary-section">
             <div class="summary-title">
                 🤖 AI Temperature Summary
+                <span id="summary-timestamp" style="font-size: 0.6em; color: #999; font-weight: normal; margin-left: 10px;"></span>
             </div>
             <div id="summary-text" class="summary-text summary-loading">
                 Loading temperature summary...
@@ -330,11 +331,11 @@
             async loadSummary() {
                 try {
                     const response = await fetch('http://localhost:9000/temperatures/summary');
-                    const summaryText = await response.text();
+                    const summaryData = await response.json();
                     
                     // Check if content actually changed to avoid unnecessary animations
                     const currentText = this.summaryElement.textContent;
-                    if (currentText !== summaryText && !this.summaryElement.classList.contains('summary-loading')) {
+                    if (currentText !== summaryData.text && !this.summaryElement.classList.contains('summary-loading')) {
                         // Trigger update animation
                         this.summaryElement.classList.add('updated');
                         setTimeout(() => {
@@ -342,12 +343,31 @@
                         }, 1000);
                     }
                     
-                    this.summaryElement.textContent = summaryText;
+                    // Format the timestamp
+                    const timestamp = new Date(summaryData.timestamp);
+                    const formattedTime = timestamp.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    
+                    // Update the summary text content
+                    this.summaryElement.textContent = summaryData.text;
                     this.summaryElement.classList.remove('summary-loading');
+                    
+                    // Update the timestamp in the title
+                    const timestampElement = document.getElementById('summary-timestamp');
+                    timestampElement.textContent = `(Last updated: ${formattedTime})`;
                 } catch (error) {
                     console.error('Failed to load temperature summary:', error);
                     this.summaryElement.textContent = 'Failed to load temperature summary. Please try again later.';
                     this.summaryElement.classList.remove('summary-loading');
+                    
+                    // Clear timestamp on error
+                    const timestampElement = document.getElementById('summary-timestamp');
+                    timestampElement.textContent = '';
                 }
             }
 
