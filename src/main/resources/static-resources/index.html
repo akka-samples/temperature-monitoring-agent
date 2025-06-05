@@ -193,6 +193,21 @@
             color: #dc3545;
         }
 
+        @keyframes cellUpdate {
+            0% { 
+                background-color: #fff3cd;
+                transform: scale(1.02);
+            }
+            100% { 
+                background-color: transparent;
+                transform: scale(1);
+            }
+        }
+
+        .temp-cell.updated {
+            animation: cellUpdate 1.5s ease-out;
+        }
+
 
         .no-data {
             text-align: center;
@@ -536,8 +551,9 @@
                         const sensorData = this.timeWindows.get(timeWindow)?.get(sensorId);
                         
                         if (sensorData) {
+                            const cellId = `cell-${timeWindow}-${sensorId}`;
                             bodyHTML += `
-                                <td class="temp-cell">
+                                <td class="temp-cell" id="${cellId}">
                                     <div class="temp-summary">
                                         <div class="temp-main temp-avg">${sensorData.averageTemperature.toFixed(1)}°C</div>
                                         <div class="temp-range">
@@ -559,7 +575,22 @@
             }
 
             highlightUpdatedRow(sensorId) {
-                // Remove highlight effect - no longer needed
+                // Find the cell for this sensor in the current time window only
+                const currentWindow = this.getTimeWindow(new Date().toISOString());
+                const cellId = `cell-${currentWindow}-${sensorId}`;
+                const cell = document.getElementById(cellId);
+                
+                if (cell) {
+                    cell.classList.remove('updated');
+                    // Force reflow to ensure the class removal takes effect
+                    cell.offsetHeight;
+                    cell.classList.add('updated');
+                    
+                    // Remove the class after animation completes
+                    setTimeout(() => {
+                        cell.classList.remove('updated');
+                    }, 1500);
+                }
             }
 
             isCurrentTimeWindow(timeWindow) {
