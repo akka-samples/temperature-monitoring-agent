@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Monitoring Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .summary-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-left: 5px solid #333333;
+        }
+
+        .summary-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-text {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #495057;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #333333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .summary-loading {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        @keyframes summaryUpdate {
+            0% { background-color: #fff3cd; }
+            100% { background-color: #f8f9fa; }
+        }
+
+        .summary-text.updated {
+            animation: summaryUpdate 1s ease-out;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .temperature-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .temperature-table th {
+            background: #ffffff;
+            color: #333333;
+            padding: 15px 12px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid #e9ecef;
+            border-bottom: 2px solid #333333;
+        }
+
+        .temperature-table th:last-child {
+            border-right: none;
+        }
+
+        .temperature-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .temperature-table td:last-child {
+            border-right: none;
+        }
+
+        .temperature-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .temperature-table tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .time-window-cell {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            text-align: left !important;
+            padding-left: 20px !important;
+            min-width: 200px;
+        }
+
+        .time-window-cell.current {
+            background: #e8f5e8;
+            border-left: 4px solid #28a745;
+        }
+
+        .sensor-header {
+            background: #ffffff;
+            color: #333333;
+            text-align: center !important;
+            min-width: 160px;
+        }
+
+        .sensor-location {
+            font-size: 0.8em;
+            font-weight: normal;
+            opacity: 0.9;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .temp-cell {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .temp-avg {
+            color: #333333;
+        }
+
+        .temp-min {
+            color: #17a2b8;
+        }
+
+        .temp-max {
+            color: #dc3545;
+        }
+
+        @keyframes cellUpdate {
+            0% { 
+                background-color: #fff3cd;
+                transform: scale(1.02);
+            }
+            100% { 
+                background-color: transparent;
+                transform: scale(1);
+            }
+        }
+
+        .temp-cell.updated {
+            animation: cellUpdate 1.5s ease-out;
+        }
+
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .temp-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .temp-main {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .temp-range {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+
+        .legend {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .temperature-table {
+                font-size: 12px;
+            }
+            
+            .temperature-table th,
+            .temperature-table td {
+                padding: 8px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌡️ Temperature Monitoring Dashboard</h1>
+
+        <div class="summary-section">
+            <div class="summary-title">
+                🤖 AI Temperature Summary
+                <span id="summary-timestamp" style="font-size: 0.6em; color: #999; font-weight: normal; margin-left: 10px;"></span>
+            </div>
+            <div id="summary-text" class="summary-text summary-loading">
+                Loading temperature summary...
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="table-container">
+                <table class="temperature-table" id="temperature-table">
+                    <thead id="table-head">
+                        <tr>
+                            <th>Time Window</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                            <td class="no-data">Loading temperature data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color temp-avg" style="background-color: #667eea;"></div>
+                    <span>Average Temperature</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color temp-min" style="background-color: #17a2b8;"></div>
+                    <span>Minimum</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color temp-max" style="background-color: #dc3545;"></div>
+                    <span>Maximum</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="connection-status" class="status disconnected">
+            Loading temperature data...
+        </div>
+    </div>
+
+    <script>
+        class TemperatureMonitor {
+            constructor() {
+                this.timeWindows = new Map();
+                this.sensors = new Set();
+                this.eventSource = null;
+                this.summaryInterval = null;
+                this.statusElement = document.getElementById('connection-status');
+                this.summaryElement = document.getElementById('summary-text');
+                this.tableHead = document.getElementById('table-head');
+                this.tableBody = document.getElementById('table-body');
+                this.loadSummary();
+                this.startSummaryPolling();
+                this.loadHistoricalData();
+                this.connectToEventStream();
+            }
+
+            async loadSummary() {
+                try {
+                    const response = await fetch('http://localhost:9000/temperatures/summary');
+                    const summaryData = await response.json();
+                    
+                    // Check if content actually changed to avoid unnecessary animations
+                    const currentText = this.summaryElement.textContent;
+                    if (currentText !== summaryData.text && !this.summaryElement.classList.contains('summary-loading')) {
+                        // Trigger update animation
+                        this.summaryElement.classList.add('updated');
+                        setTimeout(() => {
+                            this.summaryElement.classList.remove('updated');
+                        }, 1000);
+                    }
+                    
+                    // Format the timestamp
+                    const timestamp = new Date(summaryData.timestamp);
+                    const formattedTime = timestamp.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    
+                    // Update the summary text content
+                    this.summaryElement.textContent = summaryData.text;
+                    this.summaryElement.classList.remove('summary-loading');
+                    
+                    // Update the timestamp in the title
+                    const timestampElement = document.getElementById('summary-timestamp');
+                    timestampElement.textContent = `(Last updated: ${formattedTime})`;
+                } catch (error) {
+                    console.error('Failed to load temperature summary:', error);
+                    this.summaryElement.textContent = 'Failed to load temperature summary. Please try again later.';
+                    this.summaryElement.classList.remove('summary-loading');
+                    
+                    // Clear timestamp on error
+                    const timestampElement = document.getElementById('summary-timestamp');
+                    timestampElement.textContent = '';
+                }
+            }
+
+            startSummaryPolling() {
+                // Poll for updated summary every 10 seconds
+                this.summaryInterval = setInterval(() => {
+                    this.loadSummary();
+                }, 10000);
+            }
+
+            async loadHistoricalData() {
+                try {
+                    const response = await fetch('http://localhost:9000/temperatures');
+                    const data = await response.json();
+                    
+                    // Group data by timestamp (time window)
+                    data.forEach(entry => {
+                        this.updateTimeWindowData(entry);
+                    });
+                    
+                    this.renderTable();
+                    this.updateConnectionStatus(true, 'Historical data loaded');
+                } catch (error) {
+                    console.error('Failed to load historical data:', error);
+                    this.updateConnectionStatus(false, 'Failed to load historical data');
+                }
+            }
+
+            connectToEventStream() {
+                try {
+                    this.eventSource = new EventSource('http://localhost:9000/temperatures/real-time');
+                    
+                    this.eventSource.onopen = () => {
+                        this.updateConnectionStatus(true, 'Connected to real-time feed');
+                        console.log('Connected to temperature stream');
+                    };
+
+                    this.eventSource.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.updateTimeWindowData(data);
+                            this.renderTable();
+                            this.highlightUpdatedRow(data.sensorId);
+                        } catch (error) {
+                            console.error('Error parsing temperature data:', error);
+                        }
+                    };
+
+                    this.eventSource.onerror = (error) => {
+                        console.error('EventSource error:', error);
+                        this.updateConnectionStatus(false, 'Connection lost - Trying to reconnect...');
+                        
+                        // Try to reconnect after 5 seconds
+                        setTimeout(() => {
+                            if (this.eventSource.readyState === EventSource.CLOSED) {
+                                this.connectToEventStream();
+                            }
+                        }, 5000);
+                    };
+
+                } catch (error) {
+                    console.error('Failed to connect to event stream:', error);
+                    this.updateConnectionStatus(false, 'Failed to connect to real-time feed');
+                }
+            }
+
+            updateConnectionStatus(connected, message = null) {
+                if (connected) {
+                    this.statusElement.className = 'status connected';
+                    this.statusElement.textContent = message || '✅ Connected to temperature feed';
+                } else {
+                    this.statusElement.className = 'status disconnected';
+                    this.statusElement.textContent = message || '❌ Disconnected from temperature feed';
+                }
+            }
+
+            updateTimeWindowData(data) {
+                const { sensorId, location, timestamp, averageTemperature, minTemperature, maxTemperature } = data;
+                const timeWindow = this.getTimeWindow(timestamp);
+                
+                if (!this.timeWindows.has(timeWindow)) {
+                    this.timeWindows.set(timeWindow, new Map());
+                }
+                
+                this.timeWindows.get(timeWindow).set(sensorId, {
+                    sensorId,
+                    location,
+                    timestamp: new Date(timestamp),
+                    averageTemperature,
+                    minTemperature,
+                    maxTemperature
+                });
+
+                this.sensors.add(sensorId);
+            }
+
+            getTimeWindow(timestamp) {
+                const date = new Date(timestamp);
+                return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 
+                               date.getHours(), date.getMinutes()).toISOString();
+            }
+
+            renderTable() {
+                if (this.timeWindows.size === 0) {
+                    this.tableBody.innerHTML = '<tr><td class="no-data">No temperature data available. Waiting for sensors...</td></tr>';
+                    return;
+                }
+
+                this.renderTableHeader();
+                this.renderTableBody();
+            }
+
+            renderTableHeader() {
+                const sortedSensors = Array.from(this.sensors).sort();
+                
+                let headerHTML = `
+                    <tr>
+                        <th>Time Window</th>
+                `;
+
+                sortedSensors.forEach(sensorId => {
+                    // Get location from any time window for this sensor
+                    let location = '';
+                    for (const timeWindow of this.timeWindows.values()) {
+                        if (timeWindow.has(sensorId)) {
+                            location = timeWindow.get(sensorId).location;
+                            break;
+                        }
+                    }
+                    
+                    headerHTML += `
+                        <th class="sensor-header">
+                            ${location}
+                        </th>
+                    `;
+                });
+
+                headerHTML += '</tr>';
+                this.tableHead.innerHTML = headerHTML;
+            }
+
+            renderTableBody() {
+                const sortedSensors = Array.from(this.sensors).sort();
+                const sortedWindows = Array.from(this.timeWindows.keys()).sort().reverse();
+                
+                let bodyHTML = '';
+
+                sortedWindows.forEach(timeWindow => {
+                    const windowDate = new Date(timeWindow);
+                    const isCurrentWindow = this.isCurrentTimeWindow(timeWindow);
+                    const currentClass = isCurrentWindow ? 'current' : '';
+                    
+                    bodyHTML += `
+                        <tr id="time-window-row-${timeWindow}" class="time-window-row">
+                            <td class="time-window-cell ${currentClass}">
+                                <div style="font-size: 1.1em; margin-bottom: 4px;">
+                                    ${isCurrentWindow ? '🔴 Current Window' : '📊 Time Window'}
+                                </div>
+                                <div style="font-size: 0.9em; color: #6c757d;">
+                                    ${this.formatTimeWindow(windowDate)}
+                                </div>
+                            </td>
+                    `;
+
+                    sortedSensors.forEach(sensorId => {
+                        const sensorData = this.timeWindows.get(timeWindow)?.get(sensorId);
+                        
+                        if (sensorData) {
+                            const cellId = `cell-${timeWindow}-${sensorId}`;
+                            bodyHTML += `
+                                <td class="temp-cell" id="${cellId}">
+                                    <div class="temp-summary">
+                                        <div class="temp-main temp-avg">${sensorData.averageTemperature.toFixed(1)}°C</div>
+                                        <div class="temp-range">
+                                            <span class="temp-min">${sensorData.minTemperature.toFixed(1)}°C</span> - 
+                                            <span class="temp-max">${sensorData.maxTemperature.toFixed(1)}°C</span>
+                                        </div>
+                                    </div>
+                                </td>
+                            `;
+                        } else {
+                            bodyHTML += '<td class="temp-cell">-</td>';
+                        }
+                    });
+
+                    bodyHTML += '</tr>';
+                });
+
+                this.tableBody.innerHTML = bodyHTML;
+            }
+
+            highlightUpdatedRow(sensorId) {
+                // Find the cell for this sensor in the current time window only
+                const currentWindow = this.getTimeWindow(new Date().toISOString());
+                const cellId = `cell-${currentWindow}-${sensorId}`;
+                const cell = document.getElementById(cellId);
+                
+                if (cell) {
+                    cell.classList.remove('updated');
+                    // Force reflow to ensure the class removal takes effect
+                    cell.offsetHeight;
+                    cell.classList.add('updated');
+                    
+                    // Remove the class after animation completes
+                    setTimeout(() => {
+                        cell.classList.remove('updated');
+                    }, 1500);
+                }
+            }
+
+            isCurrentTimeWindow(timeWindow) {
+                const now = new Date();
+                const currentWindow = this.getTimeWindow(now.toISOString());
+                return timeWindow === currentWindow;
+            }
+
+            formatTimeWindow(date) {
+                const endTime = new Date(date.getTime() + 60000); // Add 1 minute
+                return `${this.formatTime(date)} - ${this.formatTime(endTime)}`;
+            }
+
+            formatTime(date) {
+                return date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            disconnect() {
+                if (this.eventSource) {
+                    this.eventSource.close();
+                    this.updateConnectionStatus(false);
+                }
+                if (this.summaryInterval) {
+                    clearInterval(this.summaryInterval);
+                    this.summaryInterval = null;
+                }
+            }
+        }
+
+        // Initialize the temperature monitor when the page loads
+        let temperatureMonitor;
+        document.addEventListener('DOMContentLoaded', () => {
+            temperatureMonitor = new TemperatureMonitor();
+        });
+
+        // Clean up when the page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (temperatureMonitor) {
+                temperatureMonitor.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>
