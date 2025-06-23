@@ -74,7 +74,7 @@ public class TemperatureEndpoint {
     var aiTextResponses = sessionMessages.stream()
       .filter(message -> message instanceof SessionMessage.AiMessage)
       .map(SessionMessage.AiMessage.class::cast)
-      .map(aiMessage -> new Summary(aiMessage.timestamp(), aiMessage.text()))
+      .map(aiMessage -> new Summary(aiMessage.timestamp().toEpochMilli(), aiMessage.text()))
       .toList();
 
     if (aiTextResponses.isEmpty()) {
