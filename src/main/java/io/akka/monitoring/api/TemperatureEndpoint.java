@@ -9,7 +9,6 @@ import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
-import io.akka.monitoring.application.AggregatedTemperature;
 import io.akka.monitoring.application.AggregatedTemperatureView;
 import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurementsQuery;
 
@@ -34,22 +33,13 @@ public class TemperatureEndpoint {
   record Summary(long timestamp, String text) {
   }
 
-  @Get("/current/{sensorId}")
-  public AggregatedTemperature.AggregatedData get(String sensorId) {
-    var now = Instant.now().truncatedTo(ChronoUnit.MINUTES);
-    var id = now.toString() + AggregatedTemperature.SEPARATOR + sensorId;
-    return componentClient.forKeyValueEntity(id)
-      .method(AggregatedTemperature::getAggregatedData)
-      .invoke();
-  }
-
   @Get
   public List<AggregatedTemperatureView.AggregatedTemperatureEntry> getLastMeasurements() {
     Instant nowMinusMinute = Instant.now().minus(1, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
 
     return componentClient.forView()
-      .method(AggregatedTemperatureView::query)
-      .invoke(new LastMeasurementsQuery(nowMinusMinute))
+      .method(AggregatedTemperatureView::lastMeasurement)
+      .invoke(new LastMeasurementsQuery(nowMinusMinute, 3))
       .entries();
   }
 

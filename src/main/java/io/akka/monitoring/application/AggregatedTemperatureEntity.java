@@ -5,7 +5,6 @@ import akka.javasdk.annotations.ComponentId;
 import akka.javasdk.keyvalueentity.KeyValueEntity;
 import akka.javasdk.keyvalueentity.KeyValueEntityContext;
 import io.akka.monitoring.domain.AggregatedTemperatureState;
-import io.akka.monitoring.domain.CollectedData;
 import io.akka.monitoring.domain.Location;
 
 import java.time.Instant;
@@ -13,12 +12,12 @@ import java.time.Instant;
 import static akka.Done.done;
 
 @ComponentId("aggregated-temperature")
-public class AggregatedTemperature extends KeyValueEntity<AggregatedTemperatureState> {
+public class AggregatedTemperatureEntity extends KeyValueEntity<AggregatedTemperatureState> {
 
   public static final String SEPARATOR = ";";
   private final KeyValueEntityContext context;
 
-  public AggregatedTemperature(KeyValueEntityContext context) {
+  public AggregatedTemperatureEntity(KeyValueEntityContext context) {
     this.context = context;
   }
 
@@ -40,22 +39,5 @@ public class AggregatedTemperature extends KeyValueEntity<AggregatedTemperatureS
     return effects()
       .updateState(updated)
       .thenReply(done());
-  }
-
-  public record AggregatedData(Location location, double averageTemperature, double minTemperature,
-                               double maxTemperature) {
-  }
-
-  public ReadOnlyEffect<AggregatedData> getAggregatedData() {
-    if (currentState().location().sensorId().isEmpty()) {
-      return effects().error("temperature data not found for this timeslot");
-    } else {
-      CollectedData collectedData = currentState().data();
-      AggregatedData aggregatedData = new AggregatedData(currentState().location(),
-        collectedData.averageTemperature(),
-        collectedData.minTemperature(),
-        collectedData.maxTemperature());
-      return effects().reply(aggregatedData);
-    }
   }
 }

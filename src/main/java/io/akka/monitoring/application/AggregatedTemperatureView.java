@@ -26,7 +26,7 @@ public class AggregatedTemperatureView extends View {
   public record AggregatedTemperatureEntries(List<AggregatedTemperatureEntry> entries) {
   }
 
-  @Consume.FromKeyValueEntity(AggregatedTemperature.class)
+  @Consume.FromKeyValueEntity(AggregatedTemperatureEntity.class)
   public static class AggregatedTemperatureUpdater extends TableUpdater<AggregatedTemperatureEntry> {
 
     public Effect<AggregatedTemperatureEntry> update(AggregatedTemperatureState update) {
@@ -43,11 +43,11 @@ public class AggregatedTemperatureView extends View {
     }
   }
 
-  public record LastMeasurementsQuery(Instant timestamp) {
+  public record LastMeasurementsQuery(Instant timestamp, int howMany) {
   }
 
-  @Query("select * as entries from temperatures where timestamp <= :timestamp order by timestamp desc limit 3")
-  public QueryEffect<AggregatedTemperatureEntries> query(LastMeasurementsQuery lastMeasurementsQuery) {
+  @Query("select * as entries from temperatures where timestamp <= :timestamp order by timestamp desc limit :howMany")
+  public QueryEffect<AggregatedTemperatureEntries> lastMeasurement(LastMeasurementsQuery lastMeasurementsQuery) {
     return queryResult();
   }
 
