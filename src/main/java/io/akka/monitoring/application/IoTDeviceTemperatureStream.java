@@ -8,8 +8,6 @@ import io.akka.monitoring.domain.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -44,7 +42,7 @@ public class IoTDeviceTemperatureStream {
     Instant timestamp
   ) {
     public String aggregationId() {
-      return timestamp.truncatedTo(ChronoUnit.MINUTES).toString() + AggregatedTemperature.SEPARATOR + location.sensorId();
+      return timestamp.truncatedTo(ChronoUnit.MINUTES).toString() + AggregatedTemperatureEntity.SEPARATOR + location.sensorId();
     }
 
     public RawTemperatureMeasurement withTimestamp(Instant newTimestamp) {
@@ -68,8 +66,8 @@ public class IoTDeviceTemperatureStream {
     var aggregationId = measurement.aggregationId();
     log.info("{} new measurement: {}", aggregationId, measurement);
     componentClient.forKeyValueEntity(aggregationId)
-      .method(AggregatedTemperature::record)
-      .invoke(new AggregatedTemperature.TemperatureMeasurement(measurement.location, measurement.temperature));
+      .method(AggregatedTemperatureEntity::record)
+      .invoke(new AggregatedTemperatureEntity.TemperatureMeasurement(measurement.location, measurement.temperature));
     return Done.done();
   }
 

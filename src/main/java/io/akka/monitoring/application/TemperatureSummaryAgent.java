@@ -43,7 +43,7 @@ public class TemperatureSummaryAgent extends Agent {
     3. Comparing current measurements to the previous two windows and indicating any significant changes.
     4. Mentioning if all systems are stable or if specific rooms/sensors might require attention.
     
-    Write a brief summary using bulleted points per location, focusing on the most relevant insights. 
+    Write a brief summary using bulleted points per location, focusing on the most relevant insights.
     Ensure that your summary is clear and concise, avoiding unnecessary technical jargon.
     Use the room names in your report to improve readability.
     Do not include any additional information of the overall summary.
@@ -64,19 +64,20 @@ public class TemperatureSummaryAgent extends Agent {
     Instant nowMinusMinute = Instant.now().minus(1, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
 
     var lastMeasurements = componentClient.forView()
-      .method(AggregatedTemperatureView::query)
-      .invoke(new LastMeasurementsQuery(nowMinusMinute));
+      .method(AggregatedTemperatureView::lastMeasurement)
+      .invoke(new LastMeasurementsQuery(nowMinusMinute, 3));
 
     if (lastMeasurements.entries().isEmpty()) {
       return effects().reply("There are no temperature data available");
     }
 
-    var userMessage = JsonSupport.encodeToString(lastMeasurements.entries());
+    var jsonLastMeasurements = JsonSupport.encodeToString(lastMeasurements.entries());
+
     return effects()
       .memory(limitedWindow().writeOnly())
       .model(modelProvider)
       .systemMessage(SYSTEM_MESSAGE)
-      .userMessage(userMessage)
+      .userMessage(jsonLastMeasurements)
       .thenReply();
   }
 }

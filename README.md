@@ -50,37 +50,11 @@ To start the service locally, run:
 mvn compile exec:java
 ```
 
-### API Endpoints
-
-- `GET /temperatures` - Returns last three temperature measurements
-- `GET /temperatures/current/{sensorId}` - Returns current data for a specific sensor
+Open your browser and navigate to `http://localhost:9000` to access the service.
 
 ## Deployment
 
 You can use the [Akka Console](https://console.akka.io) to create a project and deploy this service. Once you have a project created, follow these steps.
-
-#### Build docker image
-
-```shell
-mvn clean install -DskipTests
-```
-
-#### Setup OpenAI API key
-```shell
-akka secret create generic openai-api --literal key=$OPENAI_API_KEY
-```
-
-NOTE: this assumes you have your `$OPENAI_API_KEY` exported as required to run the project, otherwise just pass the value directly.
-
-#### Push image and deploy the service
-
-```shell
-akka service deploy temperature-monitoring-agent temperature-monitoring-agent:<tag-name> \
-  --secret-env OPENAI_API_KEY=openai-api/key --push
-```
-
-NOTE: the value of OPENAI_API_KEY is set to secret-name/key-name, as defined in the previous command: secret-name=openai-api and key-name=key.
-
 
 For more information on deployment, refer to [Deploy and manage services](https://doc.akka.io/operations/services/deploy-service.html).
 
