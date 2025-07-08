@@ -30,6 +30,17 @@ public class TemperatureEndpoint {
     this.componentClient = componentClient;
   }
 
+  @Get("/real-time")
+  public HttpResponse realTimeUpdates() {
+
+    var temperatureUpdates = componentClient.forView()
+      .stream(AggregatedTemperatureView::continuousTemperature)
+      .source();
+
+    return HttpResponses.serverSentEvents(temperatureUpdates);
+  }
+
+
   record Summary(long timestamp, String text) {
   }
 
@@ -41,16 +52,6 @@ public class TemperatureEndpoint {
       .method(AggregatedTemperatureView::lastMeasurement)
       .invoke(new LastMeasurementsQuery(nowMinusMinute, 3))
       .entries();
-  }
-
-  @Get("/real-time")
-  public HttpResponse realTimeUpdates() {
-
-    var temperatureUpdates = componentClient.forView()
-      .stream(AggregatedTemperatureView::continuousTemperature)
-      .source();
-
-    return HttpResponses.serverSentEvents(temperatureUpdates);
   }
 
   @Get("/summary")

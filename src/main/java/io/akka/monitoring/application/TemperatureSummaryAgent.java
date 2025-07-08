@@ -2,16 +2,15 @@ package io.akka.monitoring.application;
 
 import akka.javasdk.JsonSupport;
 import akka.javasdk.agent.Agent;
-import akka.javasdk.agent.ModelProvider;
 import akka.javasdk.annotations.AgentDescription;
 import akka.javasdk.annotations.ComponentId;
 import akka.javasdk.client.ComponentClient;
 import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurementsQuery;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import static akka.javasdk.agent.MemoryProvider.limitedWindow;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 @ComponentId("temperature-agent")
 @AgentDescription(
@@ -52,16 +51,12 @@ public class TemperatureSummaryAgent extends Agent {
 
   public static final String AGENT_SESSION_ID = "temperature-monitoring-session";
 
-  private final ModelProvider modelProvider = ModelProvider.openAi()
-    .withApiKey(System.getenv("OPENAI_API_KEY"))
-    .withModelName("gpt-4o");
-
   public TemperatureSummaryAgent(ComponentClient componentClient) {
     this.componentClient = componentClient;
   }
 
   public Effect<String> summarize() {
-    Instant nowMinusMinute = Instant.now().minus(1, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
+    Instant nowMinusMinute = Instant.now().minus(1, MINUTES).truncatedTo(MINUTES);
 
     var lastMeasurements = componentClient.forView()
       .method(AggregatedTemperatureView::lastMeasurement)
@@ -75,7 +70,6 @@ public class TemperatureSummaryAgent extends Agent {
 
     return effects()
       .memory(limitedWindow().writeOnly())
-      .model(modelProvider)
       .systemMessage(SYSTEM_MESSAGE)
       .userMessage(jsonLastMeasurements)
       .thenReply();
