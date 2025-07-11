@@ -7,6 +7,7 @@ import akka.javasdk.client.ComponentClient;
 import akka.javasdk.timer.TimerScheduler;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
+import com.typesafe.config.Config;
 import io.akka.monitoring.application.IoTDeviceTemperatureStream;
 import io.akka.monitoring.application.TemperatureSummaryAction;
 
@@ -25,7 +26,12 @@ public class Bootstrap implements ServiceSetup {
   private final TimerScheduler timerScheduler;
   private CompletionStage<Done> runningStream;
 
-  public Bootstrap(Materializer materializer, ComponentClient componentClient, TimerScheduler timerScheduler) {
+  public Bootstrap(Config config, Materializer materializer, ComponentClient componentClient, TimerScheduler timerScheduler) {
+    if (config.getString("akka.javasdk.agent.model-provider").equals("openai")
+      && config.getString("akka.javasdk.agent.openai.api-key").isBlank()) {
+      throw new IllegalStateException(
+        "No API keys found. Make sure you have OPENAI_API_KEY defined as environment variable, or change the model provider configuration in application.conf to use a different LLM.");
+    }
     this.materializer = materializer;
     this.componentClient = componentClient;
     this.temperatureStream = new IoTDeviceTemperatureStream(componentClient);
