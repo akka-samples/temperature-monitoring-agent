@@ -1,6 +1,6 @@
 package io.akka.monitoring.application;
 
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.Consume;
 import akka.javasdk.annotations.Query;
 import akka.javasdk.view.TableUpdater;
@@ -10,7 +10,7 @@ import io.akka.monitoring.domain.AggregatedTemperatureState;
 import java.time.Instant;
 import java.util.List;
 
-@ComponentId("aggregated-temperature-view")
+@Component(id = "aggregated-temperature-view")
 public class AggregatedTemperatureView extends View {
 
   public record AggregatedTemperatureEntry(

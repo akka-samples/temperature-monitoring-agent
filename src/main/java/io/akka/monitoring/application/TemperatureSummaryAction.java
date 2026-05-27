@@ -1,6 +1,6 @@
 package io.akka.monitoring.application;
 
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.timedaction.TimedAction;
 import akka.javasdk.timer.TimerScheduler;
@@ -11,7 +11,7 @@ import java.time.Duration;
 
 import static io.akka.monitoring.application.TemperatureSummaryAgent.AGENT_SESSION_ID;
 
-@ComponentId("temperature-summary-action")
+@Component(id = "temperature-summary-action")
 public class TemperatureSummaryAction extends TimedAction {
 
   private static final Logger log = LoggerFactory.getLogger(TemperatureSummaryAction.class);
