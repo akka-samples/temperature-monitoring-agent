@@ -1,7 +1,7 @@
 package io.akka.monitoring.application;
 
 import akka.Done;
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.keyvalueentity.KeyValueEntity;
 import akka.javasdk.keyvalueentity.KeyValueEntityContext;
 import io.akka.monitoring.domain.AggregatedTemperatureState;
@@ -11,7 +11,7 @@ import java.time.Instant;
 
 import static akka.Done.done;
 
-@ComponentId("aggregated-temperature")
+@Component(id = "aggregated-temperature")
 public class AggregatedTemperatureEntity extends KeyValueEntity<AggregatedTemperatureState> {
 
   public static final String SEPARATOR = ";";

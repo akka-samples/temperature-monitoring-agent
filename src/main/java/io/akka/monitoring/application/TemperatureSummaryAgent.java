@@ -2,8 +2,7 @@ package io.akka.monitoring.application;
 
 import akka.javasdk.JsonSupport;
 import akka.javasdk.agent.Agent;
-import akka.javasdk.annotations.AgentDescription;
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.client.ComponentClient;
 import io.akka.monitoring.application.AggregatedTemperatureView.LastMeasurementsQuery;
 
@@ -12,8 +11,8 @@ import java.time.Instant;
 import static akka.javasdk.agent.MemoryProvider.limitedWindow;
 import static java.time.temporal.ChronoUnit.MINUTES;
 
-@ComponentId("temperature-agent")
-@AgentDescription(
+@Component(
+  id ="temperature-agent",
   name = "Temperature summary agent",
   description =
     """
